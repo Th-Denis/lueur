@@ -1,0 +1,4 @@
+Contact: https://github.com/Th-Denis/lueur/security/advisories/new
+Expires: 2027-11-25T23:00:00.000Z
+Preferred-Languages: fr, en
+Policy: https://github.com/Th-Denis/lueur/blob/main/SECURITY.md
