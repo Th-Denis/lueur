@@ -1,0 +1,7 @@
+-- =============================================================================
+-- Données de démarrage de la base LOCALE, chargées par `supabase db reset`.
+--
+-- Volontairement vide à l'étape 1 : aucune table métier n'existe encore.
+-- Règle : uniquement des données fictives, jamais de données réelles ni de
+-- secret (specs, section 7 bis, « Environnements séparés »).
+-- =============================================================================
