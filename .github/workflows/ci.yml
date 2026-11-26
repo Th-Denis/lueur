@@ -1,0 +1,153 @@
+# =============================================================================
+# CI principale : qualité, tests unitaires, tests end-to-end web et tests de
+# la base de données. Bloquante pour toute PR (règle 8 du CLAUDE.md).
+#
+# Conventions de sécurité appliquées à tous les workflows du dépôt :
+# - actions épinglées par SHA complet de commit (règle 9), version en commentaire ;
+# - aucun droit par défaut (`permissions: {}`), droits minimaux par job ;
+# - `persist-credentials: false` : le jeton GitHub n'est pas laissé dans .git ;
+# - aucune donnée sensible : aucun secret n'est utilisé par ce workflow ;
+# - vérifié par actionlint et zizmor (workflow security.yml).
+# =============================================================================
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+
+permissions: {}
+
+# Une nouvelle poussée sur une PR annule l'exécution précédente, devenue inutile.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Aucune télémétrie envoyée par les outils depuis la CI.
+  DO_NOT_TRACK: '1'
+  TURBO_TELEMETRY_DISABLED: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  quality:
+    name: Qualité et tests unitaires
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer pnpm (version du champ packageManager)
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Installer Node.js (version de .nvmrc)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      # --frozen-lockfile : échoue si le lockfile n'est pas à jour (règle 9).
+      # Les politiques de pnpm-workspace.yaml (maturité de 7 jours, sources
+      # exotiques, trustPolicy) sont vérifiées à cette étape.
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Vérifier le formatage
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Tests unitaires
+        run: pnpm test
+
+      - name: Audit des dépendances
+        run: pnpm audit
+
+  e2e-web:
+    name: Tests end-to-end web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      # Navigateur de la version de Playwright figée dans le lockfile.
+      - name: Installer Chromium pour Playwright
+        run: pnpm --filter @lueur/web exec playwright install --with-deps chromium
+
+      - name: Tests end-to-end (build de production)
+        run: pnpm test:e2e
+
+      - name: Conserver le rapport Playwright en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  database:
+    name: Base de données (lint, pgTAP, retours arrière)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Installer Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installer les dépendances (dont la CLI Supabase figée)
+        run: pnpm install --frozen-lockfile
+
+      # Seul le conteneur Postgres est nécessaire : plus rapide que la pile
+      # complète. Les migrations sont appliquées au démarrage.
+      - name: Démarrer la base Supabase locale
+        run: pnpm exec supabase db start
+
+      - name: Lint du schéma (public, private, audit)
+        run: pnpm db:lint
+
+      # Garde-fous de schéma (RLS, COMMENT ON, UUID v7…), puis tests RLS et
+      # d'autorisation au fil des étapes (règles 8 et 14).
+      - name: Tests pgTAP
+        run: pnpm db:test
+
+      - name: Retours arrière des migrations
+        run: pnpm db:check-rollbacks

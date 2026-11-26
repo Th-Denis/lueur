@@ -9,10 +9,10 @@ packages:
 catalog:
   '@eslint/js': 9.39.5
   '@playwright/test': 1.65.1
-  '@types/node': 26.6.10
-  '@types/react': 19.3.2
+  '@types/node': 26.6.6
+  '@types/react': 19.3.0
   '@types/react-dom': 19.3.0
-  '@vitest/coverage-v8': 5.1.2
+  '@vitest/coverage-v8': 5.1.1
   # ESLint 9 et non 10 : les plugins de eslint-config-next (react, import,
   # jsx-a11y) ne prennent pas encore en charge ESLint 10.
   eslint: 9.39.5
@@ -26,12 +26,12 @@ catalog:
   react-dom: 19.3.0
   # CLI Supabase : base locale (Docker), migrations, tests pgTAP. Version figée
   # pour que tous les postes et la CI utilisent les mêmes images Postgres.
-  supabase: 3.4.0
+  supabase: 3.2.0
   turbo: 2.11.13
   # TypeScript 6 et non 7 : typescript-eslint 8 exige typescript < 6.1.
   typescript: 6.0.3
-  typescript-eslint: 8.74.0
-  vitest: 5.1.2
+  typescript-eslint: 8.73.0
+  vitest: 5.1.1
 
 # Versions exactes lors d'un ajout de dépendance (règle 9 du CLAUDE.md).
 savePrefix: ''
@@ -40,9 +40,21 @@ savePrefix: ''
 engineStrict: true
 
 # Protection de la chaîne d'approvisionnement : une version publiée depuis
-# moins de 24 h n'est jamais installée (les paquets compromis sont en général
-# retirés du registre en quelques heures).
-minimumReleaseAge: 1440
+# moins de 7 jours n'est jamais installée. Les paquets compromis sont en général
+# détectés et retirés du registre en quelques heures ou jours ; 7 jours est la
+# valeur recommandée par les règles Semgrep de la CI.
+# Correctif de sécurité urgent : exception nominative et justifiée dans
+# minimumReleaseAgeExclude, à retirer une fois le délai écoulé.
+minimumReleaseAge: 10080
+
+# Interdit aux dépendances indirectes de venir d'une source « exotique »
+# (dépôt git, URL d'archive) : tout doit venir du registre npm, vérifiable.
+blockExoticSubdeps: true
+
+# Refuse une nouvelle version d'un paquet dont les garanties de publication
+# baissent (par exemple, publiée sans provenance alors que les précédentes en
+# avaient) : signe classique d'un compte de mainteneur compromis.
+trustPolicy: no-downgrade
 
 # Correctifs de sécurité de dépendances indirectes. Chaque entrée est justifiée
 # et à retirer dès que le paquet parent embarque lui-même la version corrigée.

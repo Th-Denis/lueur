@@ -1,0 +1,16 @@
+# Propriétaires du code : leur relecture est demandée automatiquement sur chaque PR.
+# Les zones sensibles sont listées explicitement (specs, section 7 bis,
+# « Revues humaines ») pour rester visibles si d'autres relecteurs s'ajoutent.
+*                    @Th-Denis
+
+# Cryptographie (règles 1, 2 et 6 du CLAUDE.md)
+/packages/crypto/    @Th-Denis
+
+# Base de données : migrations, politiques RLS, Edge Functions (règles 3, 4 et 6)
+/supabase/           @Th-Denis
+
+# CI, configuration des agents et règles du projet (garde-fous du CLAUDE.md)
+/.github/            @Th-Denis
+/.claude/            @Th-Denis
+/CLAUDE.md           @Th-Denis
+/pnpm-workspace.yaml @Th-Denis
