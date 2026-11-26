@@ -1,0 +1,50 @@
+# Espace de travail pnpm : liste des paquets du monorepo et versions partagées.
+# Pourquoi un catalogue : chaque dépendance commune a une seule version, figée
+# (sans ^ ni ~), déclarée ici une fois pour toutes. Les package.json y font
+# référence avec "catalog:".
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  '@eslint/js': 9.39.5
+  '@playwright/test': 1.65.1
+  '@types/node': 26.6.10
+  '@types/react': 19.3.2
+  '@types/react-dom': 19.3.0
+  '@vitest/coverage-v8': 5.1.2
+  # ESLint 9 et non 10 : les plugins de eslint-config-next (react, import,
+  # jsx-a11y) ne prennent pas encore en charge ESLint 10.
+  eslint: 9.39.5
+  eslint-config-next: 16.4.6
+  globals: 17.14.0
+  next: 16.4.6
+  prettier: 3.10.1
+  # React est aligné sur la version imposée par Expo SDK 58 (bundledNativeModules),
+  # pour n'avoir qu'une seule copie de React dans le monorepo.
+  react: 19.3.0
+  react-dom: 19.3.0
+  turbo: 2.11.13
+  # TypeScript 6 et non 7 : typescript-eslint 8 exige typescript < 6.1.
+  typescript: 6.0.3
+  typescript-eslint: 8.74.0
+  vitest: 5.1.2
+
+# Versions exactes lors d'un ajout de dépendance (règle 9 du CLAUDE.md).
+savePrefix: ''
+
+# Refuse l'installation si les versions de Node ou de pnpm ne correspondent pas.
+engineStrict: true
+
+# Protection de la chaîne d'approvisionnement : une version publiée depuis
+# moins de 24 h n'est jamais installée (les paquets compromis sont en général
+# retirés du registre en quelques heures).
+minimumReleaseAge: 1440
+
+# Correctifs de sécurité de dépendances indirectes. Chaque entrée est justifiée
+# et à retirer dès que le paquet parent embarque lui-même la version corrigée.
+overrides:
+  # GHSA-g3hv-75wg-m249 (déni de service, modéré) : @expo/fingerprint 58
+  # dépend de minimatch ^10.2.6, vulnérable ; la 11.0.9 est corrigée et garde
+  # la même API. Outil de build uniquement, jamais livré dans l'app.
+  '@expo/fingerprint>minimatch': 11.0.9

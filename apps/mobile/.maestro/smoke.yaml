@@ -1,0 +1,9 @@
+# Test e2e mobile minimal : l'application démarre et affiche son titre.
+# Exécution manuelle pour l'instant (`pnpm --filter @lueur/mobile e2e:maestro`,
+# avec un build de développement installé sur un émulateur). Intégration à la CI
+# prévue à l'étape 10 du plan, avec les builds EAS.
+appId: app.lueur.mobile
+---
+- launchApp:
+    clearState: true
+- assertVisible: 'Lueur'

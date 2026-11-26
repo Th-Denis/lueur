@@ -1,0 +1,34 @@
+{
+  // Configuration TypeScript commune à tous les paquets.
+  // Pourquoi un réglage aussi strict : les options ci-dessous détectent à la
+  // compilation des erreurs que "strict" seul laisse passer (index hors bornes,
+  // propriétés optionnelles mal gérées…), ce qui compte pour du code de sécurité.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+
+    // TypeScript 6 n'inclut plus aucun @types par défaut : chaque paquet
+    // déclare explicitement ceux dont il a besoin.
+    "types": []
+  }
+}

@@ -1,0 +1,18 @@
+pnpm-lock.yaml
+node_modules/
+.next/
+.expo/
+.turbo/
+dist/
+coverage/
+playwright-report/
+test-results/
+**/next-env.d.ts
+**/expo-env.d.ts
+
+# Documents de référence rédigés à la main : jamais reformatés automatiquement
+# (CLAUDE.md et .claude/ ne se modifient qu'avec la validation de Thibaut).
+CLAUDE.md
+.claude/
+docs/SPECS.md
+docs/legal/

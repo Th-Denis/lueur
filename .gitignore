@@ -30,6 +30,10 @@ supabase/.temp/
 *.keystore
 *.jks
 
+# Fichiers de types régénérés automatiquement par Expo et Next.js
+expo-env.d.ts
+next-env.d.ts
+
 # Claude Code : réglages personnels uniquement
 .claude/settings.local.json
 

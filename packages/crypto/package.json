@@ -1,0 +1,24 @@
+{
+  "name": "@lueur/crypto",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Toute la cryptographie du projet (seul paquet autorisé à en faire).",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./csp-nonce": "./src/csp-nonce.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
