@@ -1,0 +1,53 @@
+# =============================================================================
+# Analyse CodeQL (règle 8 du CLAUDE.md) du code TypeScript/JavaScript et des
+# workflows GitHub Actions, avec la suite de requêtes étendue « security-extended ».
+# Les résultats apparaissent dans l'onglet Security du dépôt (dépôt public :
+# CodeQL est gratuit).
+# =============================================================================
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  schedule:
+    # Chaque lundi à 5 h 30 UTC : nouvelles requêtes de sécurité publiées.
+    - cron: '30 5 * * 1'
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write # publier les résultats dans l'onglet Security
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # build-mode none : analyse du code source, sans compilation à reproduire.
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-extended
+
+      - name: Analyser
+        uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          category: /language:${{ matrix.language }}

@@ -1,0 +1,44 @@
+# =============================================================================
+# Dependabot : mises à jour de sécurité et de version (specs, section 7).
+#
+# Pourquoi un délai de 7 jours (cooldown) : identique à minimumReleaseAge de
+# pnpm-workspace.yaml. Une PR Dependabot proposant une version plus récente
+# serait de toute façon refusée par `pnpm install --frozen-lockfile` en CI.
+# Les alertes de sécurité (security updates) ne sont pas soumises à ce délai.
+#
+# Les images Docker des outils d'analyse (workflow security.yml) ne sont pas
+# suivies par Dependabot : elles sont mises à jour à la main, empreinte vérifiée.
+# =============================================================================
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    # Versions exactes, comme pour un ajout manuel (règle 9).
+    versioning-strategy: increase
+    groups:
+      # Correctifs et mineures regroupés pour limiter le bruit ; les majeures
+      # restent dans des PR séparées, à relire individuellement.
+      minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: 'chore(deps)'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']
+    commit-message:
+      prefix: 'chore(ci)'

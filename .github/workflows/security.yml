@@ -1,0 +1,134 @@
+# =============================================================================
+# Analyses de sécurité bloquantes (règle 8 du CLAUDE.md, specs section 7 bis) :
+# - gitleaks : secrets dans tout l'historique git ;
+# - Semgrep : analyse statique (règles OWASP, TypeScript, React, Next.js,
+#   secrets, GitHub Actions, chaîne d'approvisionnement pnpm) ;
+# - actionlint et zizmor : erreurs et failles des workflows GitHub Actions ;
+# - dependency-review : dépendances vulnérables ajoutées par une PR.
+#
+# Pourquoi des images Docker épinglées par empreinte (sha256) plutôt que les
+# actions officielles : l'outil exécuté est exactement celui qui a été vérifié,
+# sans code d'action intermédiaire, et sans compte ni jeton chez l'éditeur
+# (Semgrep sans compte : décision de l'étape 1). Mise à jour manuelle,
+# empreinte relevée avec `docker buildx imagetools inspect <image>:<version>`.
+# =============================================================================
+name: Sécurité
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  schedule:
+    # Chaque lundi à 5 h UTC : nouvelles règles et nouvelles vulnérabilités
+    # connues, même sans modification du code.
+    - cron: '0 5 * * 1'
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+  SEMGREP_IMAGE: semgrep/semgrep:1.187.0@sha256:0c8dfa7aa1ca8c50233ec9110e8cd88d139dedd603d56507493f74c6f4b3e062
+  ACTIONLINT_IMAGE: rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+  ZIZMOR_IMAGE: ghcr.io/zizmorcore/zizmor:1.33.1@sha256:ecd3ffe6158de1322e05a044ed43749bee12b1dccb7e1a7859bc6ac4b2a1c516
+
+jobs:
+  gitleaks:
+    name: Secrets (gitleaks, tout l'historique)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer tout l'historique
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # --redact : un éventuel secret trouvé n'est jamais affiché dans les
+      # journaux de la CI (règle 5). Même utilisateur que le dépôt monté, pour
+      # que git accepte de le lire (protection « dubious ownership »).
+      - name: Analyser l'historique
+        run: >-
+          docker run --rm --user "$(id -u):$(id -g)"
+          --volume "${GITHUB_WORKSPACE}:/repo:ro"
+          "${GITLEAKS_IMAGE}"
+          git /repo --redact --no-banner --exit-code 1
+
+  semgrep:
+    name: Analyse statique (Semgrep)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # --metrics=off : aucune donnée envoyée à Semgrep. --error : tout
+      # résultat fait échouer le job. Les fichiers ignorés par git
+      # (node_modules, builds) ne sont pas analysés.
+      - name: Analyser le code
+        run: >-
+          docker run --rm
+          --volume "${GITHUB_WORKSPACE}:/src:ro" --workdir /src
+          "${SEMGREP_IMAGE}"
+          semgrep scan --metrics=off --error
+          --config p/owasp-top-ten
+          --config p/typescript
+          --config p/javascript
+          --config p/react
+          --config p/nextjs
+          --config p/secrets
+          --config p/github-actions
+
+  workflows:
+    name: Workflows GitHub Actions (actionlint, zizmor)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Vérifier la syntaxe et la logique des workflows
+        run: >-
+          docker run --rm
+          --volume "${GITHUB_WORKSPACE}:/repo:ro" --workdir /repo
+          "${ACTIONLINT_IMAGE}" -color
+
+      # --offline : aucun appel à l'API GitHub, donc aucun jeton nécessaire.
+      # Vérifie notamment l'épinglage par SHA, les droits excessifs et les
+      # injections de modèles (`${{ … }}` dans les scripts).
+      - name: Rechercher les failles des workflows
+        run: >-
+          docker run --rm
+          --volume "${GITHUB_WORKSPACE}:/repo:ro" --workdir /repo
+          "${ZIZMOR_IMAGE}"
+          --offline --format plain .
+
+  dependency-review:
+    name: Revue des dépendances ajoutées
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      # Refuse toute dépendance ajoutée ou modifiée qui a une vulnérabilité
+      # connue, quelle qu'en soit la gravité. La politique de licences sera
+      # ajoutée avec le choix de la licence du projet.
+      - name: Comparer les dépendances avec la branche cible
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: low
