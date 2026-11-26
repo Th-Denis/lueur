@@ -11,8 +11,10 @@ test-results/
 **/expo-env.d.ts
 
 # Documents de référence rédigés à la main : jamais reformatés automatiquement
-# (CLAUDE.md et .claude/ ne se modifient qu'avec la validation de Thibaut).
+# (CLAUDE.md, les sous-agents et les réglages Claude Code ne se modifient
+# qu'avec la validation de Thibaut). Les hooks, eux, sont du code formaté.
 CLAUDE.md
-.claude/
+.claude/agents/
+.claude/settings*.json
 docs/SPECS.md
 docs/legal/

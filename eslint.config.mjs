@@ -114,5 +114,11 @@ export default tseslint.config(
       ...tseslint.configs.disableTypeChecked.languageOptions,
       globals: { ...globals.node },
     },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      // Règle propre à TypeScript : en JavaScript, les types des fonctions
+      // exportées sont documentés par la JSDoc.
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+    },
   },
 );
