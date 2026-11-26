@@ -42,6 +42,13 @@ Commandes soumises à confirmation (décision `ask`) : `rm -rf` et équivalents,
 résiste pas à un contournement volontaire. La protection de fond reste l'absence de tout secret de
 production sur le poste de développement.
 
+**Faux positif connu, conservé volontairement** : le hook refuse aussi une commande qui _cite_ un
+fichier de secrets sans le lire, par exemple un `git commit -m` dont le message parle du fichier
+`.env`. Décision de Thibaut (2026-11-26) : le hook reste strict, car l'assouplir (ignorer le texte
+des messages et des heredocs) laisserait passer une lecture cachée dans un message
+(`-m "$(cat …)"`). Pour un tel message, reformuler ou passer le texte par un fichier
+(`git commit -F <fichier>`, `gh pr create --body-file <fichier>`).
+
 ## Permissions (`settings.json`)
 
 - `deny` : lecture et écriture des fichiers `.env` (hors `.env.example`), `.pem` et `.key`.
