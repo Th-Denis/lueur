@@ -49,8 +49,10 @@ const DESTRUCTIVE_RULES = [
     reason: 'perte de modifications locales (git reset --hard ou git clean -f)',
   },
   {
-    pattern: /\bsupabase\s+db\s+reset\b.*--(?:linked|db-url)\b/i,
-    reason: 'réinitialisation d’une base distante (supabase db reset hors local)',
+    // CLI Supabase 3 : `--remote` ; versions antérieures : `--linked` et `--db-url`.
+    // Toute commande visant une base distante est concernée (reset, push, test, dump…).
+    pattern: /\bsupabase\b.*\s--(?:remote|linked|db-url)\b/i,
+    reason: 'commande Supabase visant une base distante (dont supabase db reset hors local)',
   },
   {
     pattern:
