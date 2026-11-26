@@ -1,0 +1,32 @@
+{
+  "name": "lueur",
+  "private": true,
+  "description": "Calendrier de photos programmées, chiffrées de bout en bout.",
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=26 <27",
+    "pnpm": ">=12.23.0 <13"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

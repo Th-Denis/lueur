@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Lueur",
+    "slug": "lueur",
+    "scheme": "lueur",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.lueur.mobile"
+    },
+    "android": {
+      "package": "app.lueur.mobile",
+      "allowBackup": false
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

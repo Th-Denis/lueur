@@ -1,0 +1,10 @@
+{
+  // Réglages Expo d'abord, puis les réglages stricts communs du monorepo,
+  // qui l'emportent en cas de conflit.
+  "extends": ["expo/tsconfig.base", "../../tsconfig.base.json"],
+  "compilerOptions": {
+    "jsx": "react-native"
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "app-env.d.ts", ".expo/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

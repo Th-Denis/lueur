@@ -1,0 +1,29 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  // Orchestration des tâches du monorepo.
+  // Pourquoi : chaque paquet déclare ses propres scripts ; Turborepo les exécute
+  // dans le bon ordre et met les résultats en cache.
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "lint": {},
+    "typecheck": {},
+    "test": {
+      // Pas de sortie mise en cache : seul le résultat du test compte.
+      "outputs": []
+    },
+    "test:e2e": {
+      // Jamais de cache : un test e2e doit toujours réellement s'exécuter.
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      // Expo est interactif (raccourcis clavier) : on lui laisse le terminal.
+      "interactive": true
+    }
+  }
+}
