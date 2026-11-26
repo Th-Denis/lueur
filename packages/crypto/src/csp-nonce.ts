@@ -15,7 +15,7 @@
  * Edge, disponible de façon synchrone et sans charger le WebAssembly de
  * libsodium. Ce n'est pas une primitive maison : c'est la même source d'aléa
  * système que celle utilisée par `randombytes_buf` de libsodium.
- * Ce point est soumis à validation (voir la PR).
+ * Choix validé en revue de la PR 1 (voir l'ADR 0004).
  *
  * Références :
  * - CSP niveau 3, nonces : https://www.w3.org/TR/CSP3/#security-nonces
