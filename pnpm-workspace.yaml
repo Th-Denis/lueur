@@ -24,6 +24,9 @@ catalog:
   # pour n'avoir qu'une seule copie de React dans le monorepo.
   react: 19.3.0
   react-dom: 19.3.0
+  # CLI Supabase : base locale (Docker), migrations, tests pgTAP. Version figée
+  # pour que tous les postes et la CI utilisent les mêmes images Postgres.
+  supabase: 3.4.0
   turbo: 2.11.13
   # TypeScript 6 et non 7 : typescript-eslint 8 exige typescript < 6.1.
   typescript: 6.0.3
